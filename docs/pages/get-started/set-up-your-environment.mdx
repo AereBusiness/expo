@@ -1,3 +1,114 @@
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, Camera, Calculator, Upload } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useState } from "react";
+
+function calcularPrecoDetalhado(custo, frete, margem, imposto) {
+  const custoTotal = parseFloat(custo) + parseFloat(frete);
+  const precoBruto = custoTotal / (1 - margem / 100);
+  const precoFinal = precoBruto / (1 - imposto / 100);
+  const impostoValor = precoFinal * (imposto / 100);
+  const lucroLiquido = precoFinal - custoTotal - impostoValor;
+  return {
+    preco: precoFinal.toFixed(2),
+    lucro: lucroLiquido.toFixed(2),
+    custoTotal: custoTotal.toFixed(2),
+    impostoValor: impostoValor.toFixed(2)
+  };
+}
+
+export default function PrecificadorExpress() {
+  const [custo, setCusto] = useState(0);
+  const [frete, setFrete] = useState(0);
+  const [margem, setMargem] = useState(0);
+  const [imposto, setImposto] = useState(0);
+
+  const resetarCampos = () => {
+    setCusto(0);
+    setFrete(0);
+    setMargem(0);
+    setImposto(0);
+  };
+
+  const resultado = calcularPrecoDetalhado(custo, frete, margem, imposto);
+
+  const comparativo = [0, 5, 10, 15, 20].map((i) => {
+    const r = calcularPrecoDetalhado(custo, frete, margem, i);
+    return { imposto: `${i}%`, preco: parseFloat(r.preco), lucro: parseFloat(r.lucro) };
+  });
+
+  return (
+    <div className="p-4 space-y-6 max-w-md mx-auto">
+      <h1 className="text-xl font-bold text-blue-700">Precificador Express</h1>
+      <p className="text-sm text-muted-foreground">Escaneie, compare e precifique com inteligência.</p>
+
+      <Card className="rounded-2xl shadow-md border-blue-200">
+        <CardContent className="p-4 space-y-6">
+          <div className="space-y-2">
+            <label className="font-medium text-sm text-blue-600">1. Escaneie ou busque um produto</label>
+            <div className="flex flex-col gap-2">
+              <Button variant="outline" className="w-full text-blue-700 border-blue-400"><Camera className="w-4 h-4 mr-2" /> Tirar Foto</Button>
+              <Input placeholder="Digite nome ou código de barras" className="w-full" />
+              <Button variant="default" className="w-full bg-blue-600 hover:bg-blue-700 text-white"><Upload className="w-4 h-4 mr-2" /> Buscar</Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-medium text-sm text-blue-600">2. Informações do Produto</label>
+            <div className="grid grid-cols-1 gap-3">
+              <Input placeholder="Custo (R$)" type="number" value={custo} onChange={(e) => setCusto(e.target.value)} />
+              <Input placeholder="Frete (R$)" type="number" value={frete} onChange={(e) => setFrete(e.target.value)} />
+              <Input placeholder="Margem desejada (%)" type="number" value={margem} onChange={(e) => setMargem(e.target.value)} />
+              <Input placeholder="Imposto (%)" type="number" value={imposto} onChange={(e) => setImposto(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-medium text-sm text-blue-600">3. Resultado da Precificação</label>
+            <div className="bg-blue-100 p-3 rounded-xl text-sm">
+              <p>Preço ideal: <strong>R$ {resultado.preco}</strong></p>
+              <p>Lucro líquido estimado: <strong>R$ {resultado.lucro}</strong></p>
+              <p>Imposto estimado: <strong>R$ {resultado.impostoValor}</strong></p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-medium text-sm text-blue-600">4. Comparativo de Marketplaces</label>
+            <Tabs defaultValue="amazon">
+              <TabsList className="flex w-full justify-around">
+                <TabsTrigger value="amazon">Amazon</TabsTrigger>
+                <TabsTrigger value="shopee">Shopee</TabsTrigger>
+                <TabsTrigger value="ml">Mercado Livre</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <p className="text-xs text-muted-foreground">Ex: Amazon - Preço médio: R$ 79,90 | Menor preço: R$ 72,50</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-medium text-sm text-blue-600">5. Simulação com impostos</label>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={comparativo}>
+                <XAxis dataKey="imposto" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="preco" fill="#2563eb" name="Preço Ideal" />
+                <Bar dataKey="lucro" fill="#10b981" name="Lucro Líquido" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="pt-4">
+            <Button onClick={resetarCampos} className="w-full bg-red-500 hover:bg-red-600 text-white"><Calculator className="w-4 h-4 mr-2" /> Simular Novamente</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 ---
 title: Set up your environment
 description: Learn how to set up your development environment to start building with Expo.
